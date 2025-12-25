@@ -19,7 +19,7 @@ miniapp.get("/tasks", async (req, res) => {
   }
 });
 miniapp.all("/", (req, res) => {
-  res.redirect("/tasks");
+  res.render("templetes/addingTaskForm.ejs");
 });
 //get un singolo task con id
 

@@ -4,7 +4,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <link rel ="stylesheet"  href ="custom.css">
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
    
@@ -110,20 +110,43 @@
             </ul>
   
             <!-- Add a new task... -->
-            <button type="button" class="btn btn-lg btn-success fixed-right-bottom">&#43;</button>
+            <button id ="addTask" type="button" class="btn btn-lg btn-success fixed-right-bottom">&#43;</button>
           </main>
         </div>
     </div>
-    
 
+<div id="overlay" class="hidden">
+  <form id ="Task">
+    <div>
+        <labe for = "descrizione">descrizione: </labe>
+        <input name ="descrizione" type ="text" placehoder="inserice una descrizione">
+    </div>
+                
+    <div>
+       <labe for = "data">data</labe>
+       <input name ="data" type="datetime">
+    </div>
+   
+    <div>
+    <labe for = "progetto">progetto</labe>        
+      <select name ="progetto"> 
+         <option value ="Upo">UPO</opption>
+         <option value ="Personale">Personale</option>
+      </select>
+    </div>
 
+    <div>
+        <labe for = "importante">importante</labe>
+        <input name="importante" type ="checkbox">
+    </div>
+                
+    </form>
+  </div>
   
-  
-  
-    <!-- Optional JavaScript; choose one of the two! -->
+   <!--Optional JavaScript; choose one of the two! -->
 
     <!-- Option 1: Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+    <script src="script.js"></script>
     
     <!-- Option 2: Separate Popper and Bootstrap JS -->
     <!--
@@ -131,4 +154,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.min.js" integrity="sha384-VQqxDN0EQCkWoxt/0vsQvZswzTHUVOImccYmSyhJTp7kGtPed0Qcx8rK9h9YEgx+" crossorigin="anonymous"></script>
     -->
   </body>
+  
+
 </html>

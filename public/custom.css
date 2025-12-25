@@ -1,33 +1,94 @@
 .vheight-100 {
-    min-height: 100vh;
+  min-height: 100vh;
 }
 
 .below-nav {
-    margin-top: 4rem;
+  margin-top: 4rem;
 }
 
 .list-group-item {
-    background-color: transparent;
+  background-color: transparent;
 }
 
 .list-group-item.active {
-    color:white;
-    background-color: #28a745;
-    border-color: #28a745;
+  color: white;
+  background-color: #28a745;
+  border-color: #28a745;
 }
 
 .list-group-item-action:hover {
-    background-color: #9becae;
-    border-color: #9becae;
+  background-color: #9becae;
+  border-color: #9becae;
 }
-
 
 /* Add task button */
 .fixed-right-bottom {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    z-index: 1030;
-    margin: 0 1.5rem 1.5rem 0;
-    border-radius: 50%;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 1030;
+  margin: 0 1.5rem 1.5rem 0;
+  border-radius: 50%;
+}
+
+/* Imposta il body per occupare tutto lo schermo e centrare il contenuto */
+#overlay {
+
+  height: 100vh; /* altezza viewport completa */
+  display: flex; /* attiva flexbox */
+  justify-content: center; /* centra orizzontalmente */
+  align-items: center; /* centra verticalmente */
+  background-color: rgba(103, 103, 103, 0.3); /* sfondo leggermente scuro per effetto overlay */
+  margin: 0; /* rimuove margini default */
+  font-family: Arial, sans-serif; /* font leggibile */
+}
+
+/* Stile principale del form come scheda */
+#Task {
+  background-color: #fff; /* sfondo bianco */
+  padding: 20px; /* spazio interno */
+  border-radius: 10px; /* angoli arrotondati */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* ombra per effetto pop-up */
+  width: 300px; /* larghezza fissa */
+  display: flex; /* flex per contenuto verticale */
+  flex-direction: column; /* mette i div uno sotto l'altro */
+  gap: 15px; /* spazio tra i campi */
+  position:fixed;
+  top: 45%;
+  left: 40%;
+}
+
+/* Stile dei div interni per maggiore chiarezza */
+#Task div {
+  display: flex; /* flex per label + input */
+  flex-direction: column; /* input sotto label */
+}
+
+/* Stile delle label */
+#Task label {
+  font-weight: bold; /* rende le label in grassetto */
+  margin-bottom: 5px; /* distanza dal campo input */
+}
+
+/* Stile degli input e select */
+#Task input[type="text"],
+#Task input[type="datetime"],
+#Task select {
+  padding: 8px; /* padding interno */
+  border: 1px solid #ccc; /* bordo leggero */
+  border-radius: 5px; /* angoli leggermente arrotondati */
+  font-size: 14px; /* dimensione testo leggibile */
+}
+
+/* Stile checkbox */
+#Task input[type="checkbox"] {
+  width: auto; /* checkbox standard */
+  margin-top: 5px; /* piccolo spazio sopra */
+}
+
+.hidden {
+   display: none;
+   }
+body{
+    opacity:0.33;
 }
