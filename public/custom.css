@@ -36,7 +36,7 @@
   position: fixed;
   top: 0;
   left: 0;
-    width: 100vw;
+  width: 100vw;
 
   height: 100vh; /* altezza viewport completa */
   display: flex; /* attiva flexbox */
@@ -62,7 +62,7 @@
   padding: 20px; /* spazio interno */
   border-radius: 10px; /* angoli arrotondati */
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* ombra per effetto pop-up */
-  width: 300px; /* larghezza fissa */
+  width: 400px; /* larghezza fissa */
   display: flex; /* flex per contenuto verticale */
   flex-direction: column; /* mette i div uno sotto l'altro */
   gap: 15px; /* spazio tra i campi */
