@@ -33,14 +33,27 @@
 
 /* Imposta il body per occupare tutto lo schermo e centrare il contenuto */
 #overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+    width: 100vw;
 
   height: 100vh; /* altezza viewport completa */
   display: flex; /* attiva flexbox */
   justify-content: center; /* centra orizzontalmente */
   align-items: center; /* centra verticalmente */
-  background-color: rgba(103, 103, 103, 0.3); /* sfondo leggermente scuro per effetto overlay */
+  background-color: rgba(72, 72, 72, 0.3); /* sfondo leggermente scuro per effetto overlay */
+  background: rgba(0, 0, 0, 0.5);
   margin: 0; /* rimuove margini default */
   font-family: Arial, sans-serif; /* font leggibile */
+
+   z-index: 9999;
+ /* il trucco: nascondi l’overlay intero */
+  visibility: hidden;
+}
+
+#overlay.show {
+  visibility: visible;
 }
 
 /* Stile principale del form come scheda */
@@ -53,9 +66,7 @@
   display: flex; /* flex per contenuto verticale */
   flex-direction: column; /* mette i div uno sotto l'altro */
   gap: 15px; /* spazio tra i campi */
-  position:fixed;
-  top: 45%;
-  left: 40%;
+ 
 }
 
 /* Stile dei div interni per maggiore chiarezza */
@@ -83,12 +94,18 @@
 /* Stile checkbox */
 #Task input[type="checkbox"] {
   width: auto; /* checkbox standard */
-  margin-top: 5px; /* piccolo spazio sopra */
+  margin-top: 0px; /* piccolo spazio sopra */
+  position: relative;
+  left:10px;
+  top:5px;
+  width:22px;
+  height: 22px;
 }
 
 .hidden {
-   display: none;
+   display: none !important;
    }
-body{
-    opacity:0.33;
-}
+
+  #addTaskSub{
+    width: 100px;
+  }

@@ -117,28 +117,30 @@
 
 <div id="overlay" class="hidden">
   <form id ="Task">
+    <h3>Adding Task</h3>
     <div>
         <labe for = "descrizione">descrizione: </labe>
-        <input name ="descrizione" type ="text" placehoder="inserice una descrizione">
+        <input name ="descrizione" type ="text" placeholder="inserice una descrizione">
     </div>
                 
     <div>
        <labe for = "data">data</labe>
-       <input name ="data" type="datetime">
+       <input name ="data" type="date">
     </div>
    
     <div>
     <labe for = "progetto">progetto</labe>        
       <select name ="progetto"> 
-         <option value ="Upo">UPO</opption>
+         <option value ="Upo">UPO</option>
          <option value ="Personale">Personale</option>
       </select>
     </div>
 
     <div>
-        <labe for = "importante">importante</labe>
+        <label for = "importante">importante</labe>
         <input name="importante" type ="checkbox">
     </div>
+    <button id="addTaskSub" type="submit">Submit</button>
                 
     </form>
   </div>

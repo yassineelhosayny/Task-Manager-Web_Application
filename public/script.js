@@ -3,13 +3,13 @@
 console.log("collegato");
 
 const btn = document.getElementById("addTask");
+const formAddTask = document.getElementById("overlay");
 if(btn)
 btn.addEventListener("click",(event)=>{
     event.preventDefault();
     console.log("clicked");
-    btn.style.backgroundColor ="#E8F777";
-    document.body.style.opacity = 0.5;
-
+    btn.style.backgroundColor ="#0b7515ff";
+    overlay.classList.add("show");
+    formAddTask.classList.toggle("hidden");
     
-
 });
