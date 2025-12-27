@@ -57,7 +57,7 @@ function renderTasks(task){
         }
         else{
             label.appendChild(span2);
-            const div4 = document.createElement('div');
+            const div4 = document.createElement('span');
             div4.innerText = task.descrizione;
             label.appendChild(div4);
         }
@@ -65,13 +65,15 @@ function renderTasks(task){
 
          if(task.progetto === "upo"){
             span.innerText = "UPO";
-            span.classList.add("badge","bg-success","mx-4");
+            span.classList.add("badge","bg-primary","mx-4");
+            
          }
          else{
             span.innerText = "Personale";
-             span.classList.add("badge","bg-primary","mx-4");
+             span.classList.add("badge","bg-success","mx-4");
          }
-         small.innerText = task.scadenza;
+         const date = new Date(task.scadenza);
+         small.innerText = date.toDateString() + " " + date.toTimeString().slice(0,5);
 
         div2.appendChild(input);
         div2.appendChild(label);
