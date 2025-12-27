@@ -73,7 +73,7 @@ function renderTasks(task){
              span.classList.add("badge","bg-success","mx-4");
          }
          const date = new Date(task.scadenza);
-         small.innerText = date.toDateString() + " " + date.toTimeString().slice(0,5);
+         small.innerText = date.toString().slice(0,21);
 
         div2.appendChild(input);
         div2.appendChild(label);
@@ -90,11 +90,11 @@ function renderTasks(task){
         li.appendChild(div);
 
 
-        document.getElementById("tutti").appendChild(li);
+        document.getElementById("TaskResult").appendChild(li);
 
  
 }
-
+const tutti = document.getElementById("")
 async function fetchTasks(){
     try{
     const res = await fetch("/tasks");
