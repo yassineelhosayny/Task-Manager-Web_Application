@@ -70,7 +70,7 @@
             <h1>Tutti</h1>
   
             <!-- List of tasks -->
-            <ul class="list-group list-group-flush">
+            <ul id="tutti" class="list-group list-group-flush">
               <li class="list-group-item">
                 <div class="d-flex w-100 justify-content-between">
                   <div class="form-check">
@@ -115,7 +115,7 @@
         </div>
     </div>
 
-<div id="overlay" class="hidden">
+<div id="overlay" class="">
   <form id ="Task">
     <h3>Adding Task</h3>
     <div>
@@ -140,8 +140,10 @@
         <label for = "importante">importante</labe>
         <input name="importante" type ="checkbox">
     </div>
-    <button id="addTaskSub" type="submit">Submit</button>
-                
+    <div id ="btns">
+        <button id="cancel" >Anulla</button> 
+        <button id="addTaskSub" type="submit">Submit</button>      
+    </div> 
     </form>
   </div>
   

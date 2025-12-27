@@ -106,6 +106,24 @@
    display: none !important;
    }
 
-  #addTaskSub{
+  #addTaskSub,#cancel{
     width: 100px;
+    margin: 5px;
+    flex: 1; /* opzionale: li rende della stessa larghezza */
+    border: 1px solid rgb(85, 204, 61);
+    background-color:rgb(68, 236, 34);
+    border-radius: 5px;
+
+   
+  }
+    #addTaskSub:hover,#cancel:hover{
+      background-color:rgb(35, 194, 3);
+    }
+
+  #btns {
+  
+    display:flex;
+    justify-content: space-between;
+    gap:150px;
+     flex-direction:row !important;
   }
