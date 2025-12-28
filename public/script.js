@@ -94,12 +94,14 @@ function renderTasks(task){
 
  
 }
-const tutti = document.getElementById("")
+
 async function fetchTasks(){
     try{
     const res = await fetch("/tasks");
     const data = await res.json();
     
+    //clear dom
+    document.getElementById("TaskResult").innerHTML=``;
     data.data.forEach((task)=>{
         renderTasks(task);
     });
@@ -109,4 +111,41 @@ async function fetchTasks(){
     }
 
 }
+
+//add task
+const addingTaskBtn = document.getElementById("addTaskSub");
+const formaddingTask = document.getElementById("Task");
+formaddingTask.addEventListener("submit",async (e)=>{
+    console.log("adding task iniciated!");
+    e.preventDefault();
+    const descrizione = formaddingTask.descrizione.value;
+    const scadenza = new Date(formaddingTask.data.value);
+    const progetto = formaddingTask.progetto.value;
+    const importante = formaddingTask.importante.checked ? 1:0;
+    const privato = formaddingTask.privato.checked ? 1: 0;
+
+    try{
+    const res = await fetch("/task/addingTask",{
+        method: "POST",
+        headers: {"Content-Type" : "application/json"},
+        body : JSON.stringify({
+            descrizione,scadenza,progetto,importante,privato
+        })
+    });
+    const data = await res.json();
+    if(res.ok || data.success)
+         fetchTasks();
+    console.log("task aggiuno con successo!");
+    formAddTask.classList.remove("show");
+    }catch(err){
+        alert(err.error);
+    }
+
+});
+
+
 fetchTasks();
+
+//filter selected
+const selected = document.querySelector("aside a[filter-data]");
+

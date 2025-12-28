@@ -49,18 +49,18 @@
                 <a href="" class="list-group-item list-group-item-action active" aria-current="true">
                   Tutti
                 </a>
-                <a href="#" class="list-group-item list-group-item-action">Importanti</a>
-                <a href="#" class="list-group-item list-group-item-action">Oggi</a>
-                <a href="#" class="list-group-item list-group-item-action">Prossimi 7 giorni</a>
-                <a href="#" class="list-group-item list-group-item-action">Privati</a>
-                <a href="#" class="list-group-item list-group-item-action">Condivisi con...</a>
+                <a href="#" data-filter="tutti" class="list-group-item list-group-item-action">Importanti</a>
+                <a href="#" data-filter ="oggi" class="list-group-item list-group-item-action">Oggi</a>
+                <a href="#" data-filter ="setimanali" class="list-group-item list-group-item-action">Prossimi 7 giorni</a>
+                <a href="#" data-filter="private" class="list-group-item list-group-item-action">Privati</a>
+                <a href="#" data-filter="condivisi" class="list-group-item list-group-item-action">Condivisi con...</a>
             </div>
 
             <div class="my-5">
               <h6 class="border-bottom border-gray p-3 mb-0">Progetti</h6>
               <div class="list-group list-group-flush">
-                <a href="#" class="list-group-item list-group-item-action">UPO</a>
-                <a href="#" class="list-group-item list-group-item-action">Personale</a>
+                <a href="#" data-filter="upo" class="list-group-item list-group-item-action">UPO</a>
+                <a href="#" data-filter ="personale" class="list-group-item list-group-item-action">Personale</a>
               </div>
             </div>          
           </aside>      
@@ -90,7 +90,7 @@
                 
     <div>
        <labe for = "data">data</labe>
-       <input name ="data" type="date">
+       <input name ="data" type="datetime-local">
     </div>
    
     <div>
@@ -104,6 +104,10 @@
     <div>
         <label for = "importante">importante</labe>
         <input name="importante" type ="checkbox">
+    </div>
+    <div>
+        <label for = "privato">privata</labe>
+        <input name="privato" type ="checkbox">
     </div>
     <div id ="btns">
         <button id="cancel" >Anulla</button> 
