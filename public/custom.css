@@ -23,7 +23,8 @@
 
 /* Add task button */
 .fixed-right-bottom {
-  position: absolute;
+  position: fixed;
+  
   right: 0;
   bottom: 0;
   z-index: 1030;
@@ -127,3 +128,7 @@
     gap:150px;
      flex-direction:row !important;
   }
+.containerData_DeleGap{
+  display:flex;
+  gap:10px;
+}
