@@ -56,7 +56,7 @@ exports.aggiungiTask = function (
         } else {
           console.log("task aggiunta con successo: ", descrizione);
           resolve({
-            dbSuccess: true,
+            Success: true,
             id: this.lastID,
             descrizione: descrizione,
           });
@@ -169,6 +169,11 @@ exports.modificaTaskDinamico = function (id, variabile) {
 };
 
 exports.cercaTask = function (attributiObj) {
+  
+  if (!attributiObj || typeof attributiObj !== "object") {
+    attributiObj = {};
+}
+   
   return new Promise((resolve, reject) => {
     const attributeAspettate = [
       "descrizione",
@@ -190,9 +195,60 @@ exports.cercaTask = function (attributiObj) {
           return resolve(rows);
         }
       });
+      return;
     }
-    const conditions = attributi.map((k) => `${k} = ?`).join(" AND ");
-    const conditionsValore = attributi.map((k) => attributiObj[k]);
+    const conditions = attributi.map((k) => {
+      if (k === "descrizione") {
+        return `${k} LIKE ?`;
+      } else {
+        return `${k} = ?`;
+      }
+    }).join(" AND ");
+    const conditionsValore = attributi.map((k) => {
+      if (k === "descrizione") {
+        return `%${attributiObj[k]}%`;
+      } else {
+        return attributiObj[k];
+      }
+    });
+
+    console.log("chiama del DB con filter:",conditionsValore );
+    console.log("chiama del DB con conditions:",conditions);
+
+
+    if(attributi.includes("scadenza") && attributi.length === 1){
+      const date = attributiObj["scadenza"];
+      
+     
+      let params,query ;
+      const oggi = new Date().toISOString().slice(0,10);
+      if(date === "oggi"){
+        //oggi
+      
+      query = `SELECT * FROM task WHERE DATE(scadenza) = DATE(?)`;
+        params = [oggi];
+      }
+
+      else if(date === "setimanali"){
+        const prossimi7 = new Date();
+        prossimi7.setDate(prossimi7.getDate() + 7);
+        const prossimi7Giorni = prossimi7.toISOString().slice(0,10);
+        
+        query = `SELECT * FROM task WHERE DATE(scadenza) BETWEEN DATE(?) AND DATE(?)`;
+        params = [oggi, prossimi7Giorni];
+      }
+
+     db.all(query, params, (err, rows) => {
+        if(err){
+          console.log("DB: errore nel filtro di DATE!");
+          return reject(err);
+        } else {
+          console.log(`Task con filtrazione "${date}" trovati: ${rows.length}`);
+          return resolve(rows);
+        }
+      });
+      return;
+    }
 
     const sql = `SELECT * FROM task WHERE ${conditions} `;
     db.all(sql, [...conditionsValore], (err, rows) => {

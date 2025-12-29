@@ -3,10 +3,12 @@ const miniapp = express.Router();  /****mini server per route soto il server pri
 const taskdao = require("../taskDao/taskdao");
 
 
-//get lista dei libri
+//get lista dei libri basando su filterSelected: UN SINGOLO PARAMETRO nel QUERY.
 miniapp.get("/tasks", async (req, res) => {
   try {
-    const tasks = await taskdao.listaAllTasks();
+    const filter = req.query || {};
+      //restiusci i task basando al filterSelected
+    const  tasks = await taskdao.cercaTask(filter);
     res.json({
       success: true,
       data: tasks,
@@ -18,8 +20,9 @@ miniapp.get("/tasks", async (req, res) => {
     });
   }
 });
+
 miniapp.all("/", (req, res) => {
-  res.render("templetes/addingTaskForm.ejs");
+  res.redirect("/tasks");
 });
 //get un singolo task con id
 

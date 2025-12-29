@@ -114,14 +114,19 @@ function renderTasks(task){
  
 }
 
-async function fetchTasks(){
+async function fetchTasks(filterOBJ={}){
     try{
-    const res = await fetch("/tasks");
-    const data = await res.json();
+        //add query parameter
+    const query = new URLSearchParams(filterOBJ).toString();
+    
+    console.log(query);
+    const res = await fetch(`/tasks?${query}`);
+    const tasks = await res.json();
     
     //clear dom
     document.getElementById("TaskResult").innerHTML=``;
-    data.data.forEach((task)=>{
+
+        tasks.data.forEach((task)=>{
         renderTasks(task);
     });
     }
@@ -233,9 +238,89 @@ taskResult.addEventListener("change",async (e)=>{
 });
 
 
-fetchTasks();
+
 
 //filter selected
 const asideSelected = document.querySelectorAll("aside a[data-filter ]");
+const main = document.querySelector("main");
 
-asideSelected.forEach(l => l.classList.remove("active"));
+function filterSelected(dataFilter){
+    asideSelected.forEach(l =>{ 
+        l.classList.remove("active")
+        if(l.dataset.filter === dataFilter){
+            l.classList.add("active")
+            main.querySelector("h1").innerText = l.innerText;
+            if(dataFilter === "condivisi" ){
+                const obj ={ privato : 0};
+                fetchTasks(obj);
+            }
+            else if(dataFilter === "tutti"){
+                fetchTasks();
+            }
+            else if(dataFilter === "importante"){
+                const obj ={importante: 1 };
+                fetchTasks(obj);
+            }
+             else if(dataFilter === "privato"){
+                const obj ={ privato : 1};
+                fetchTasks(obj);
+            }
+             else if(dataFilter === "upo"){
+                const obj ={progetto : "upo" };
+                fetchTasks(obj);
+            }
+             else if(dataFilter ==="personale"){
+                const obj ={progetto : "personale" };
+                fetchTasks(obj);
+            }
+            //else per settimanali e oggi
+            else if(dataFilter === "oggi" || dataFilter === "setimanali"){
+                const obj ={scadenza : dataFilter  };
+                fetchTasks(obj);
+            }
+    }
+    
+    
+    });
+
+    
+}
+
+asideSelected.forEach( l=> {
+       l.addEventListener("click",(e)=>{
+            e.preventDefault();
+            //il suo dataFilter
+            const datafilter= l.dataset.filter;
+            console.log("filter selezionato:",datafilter);
+            filterSelected(datafilter);
+});
+});
+
+
+fetchTasks();
+
+const cercaForm = document.querySelector("#cercaForm");
+cercaForm.addEventListener("submit",async (e)=>{
+    e.preventDefault();
+    const descrizione = cercaForm.cerca.value || "";
+    if(descrizione){
+        try{
+            const res = await fetch(`/task/cercaTask?descrizione=${encodeURIComponent(descrizione)}`);
+            const tasks = await res.json();
+
+            document.getElementById("TaskResult").innerHTML=``;
+            if(tasks.success && tasks.data.length >= 1){
+            main.querySelector("h1").innerText = `Risultato Ricerca: "${descrizione}"`;
+            tasks.data.forEach((task)=>{
+            renderTasks(task);
+            });
+            }else{
+                document.getElementById("TaskResult").innerHTML="<li class='list-group-item'>Nessun task trovato</li>";
+            }
+            cercaForm.cerca.focus();
+            cercaForm.reset();
+        }catch(err){
+            alert(err.error);
+        }
+    }
+});
