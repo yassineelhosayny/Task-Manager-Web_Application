@@ -27,8 +27,6 @@ function renderTasks(task){
         const input = document.createElement('input');
         const label = document.createElement('label');
 
-        
-        
         const div3 = document.createElement('div');
         div3.innerHTML =`
                     <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" fill="currentColor" class="bi bi-person-square" viewBox="0 0 16 16">
@@ -44,6 +42,9 @@ function renderTasks(task){
             </svg>
             `;
         const svgDele = divPerSvgdele.querySelector("svg");
+        //assegnare task id al svg della cancellazione
+        svgDele.dataset.id = task.id;
+
         const span = document.createElement('span');
         const small = document.createElement('small');
         const span2 = document.createElement('span');
@@ -58,7 +59,10 @@ function renderTasks(task){
         label.classList.add("form-check-label");
         
        
-
+        //inputCheckBox stato + attributo name
+        if(task.completato === 1)
+             input.checked =true;
+        input.setAttribute("name","completato");
         //assign data
         if(!task.importante){
          label.innerText = task.descrizione;
@@ -103,7 +107,7 @@ function renderTasks(task){
         
         
         li.appendChild(div);
-
+        li.dataset.id = task.id;
 
         document.getElementById("TaskResult").appendChild(li);
 
@@ -138,22 +142,92 @@ formaddingTask.addEventListener("submit",async (e)=>{
     const progetto = formaddingTask.progetto.value;
     const importante = formaddingTask.importante.checked ? 1:0;
     const privato = formaddingTask.privato.checked ? 1: 0;
+    const completato = 0;
 
     try{
     const res = await fetch("/task/addingTask",{
         method: "POST",
         headers: {"Content-Type" : "application/json"},
         body : JSON.stringify({
-            descrizione,scadenza,progetto,importante,privato
+            descrizione,scadenza,progetto,importante,privato, completato
         })
     });
     const data = await res.json();
     if(res.ok || data.success)
          fetchTasks();
     console.log("task aggiuno con successo!");
+    formaddingTask.reset();
     formAddTask.classList.remove("show");
     }catch(err){
         alert(err.error);
+    }
+
+});
+
+//cancellazione di un task
+const taskResult = document.getElementById("TaskResult");
+taskResult.addEventListener("click",async (e)=>{
+    
+    const svg = e.target.closest("svg");
+
+    if(!svg) return;
+    if(!svg.dataset.id) return;
+
+    const id = svg.dataset.id;
+    const consequence = confirm("Sei securo che voi cancella questa Task!!");
+    if(!consequence){
+        console.log("cancellazione annullata.");
+        return;
+    }
+        try{
+            console.log("cancellazione Task iniciated.");
+            const res= await fetch("/task/rimuoverTask",{
+                method: "DELETE",
+                headers :{"Content-Type" : "application/json"},
+                body: JSON.stringify({id})
+            });
+            const data = await res.json();
+
+            if(!data.success ){
+                console.log("errore: cancellazione fallita");
+                            }
+            document.querySelector(`li[data-id ="${id}"]`).remove();
+
+        }catch(err){
+            alert(err.error || err);
+        }
+    
+    
+});
+
+//task è Completata
+taskResult.addEventListener("change",async (e)=>{
+    const inputCheckBox = e.target.closest('input[name="completato"]');
+    if(!inputCheckBox)
+        return;
+    const completato = inputCheckBox.checked ? 1:0;
+
+    const li = inputCheckBox.closest('li');
+    if(!li || !li.dataset.id)
+        return;
+
+    const id = li.dataset.id;
+    if(!id)
+        return;
+    try{
+        console.log("compilazione Task iniciated.");
+        const res = await fetch("/task/taskCompletata",{
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({id,completato})
+        });
+        const data = await res.json();
+        if(!res.ok)
+            console.log("Errore nella richiesta dal server!.")
+        console.log("stato del task è stato cambiato.")
+
+    }catch(err){
+        alert(err.error || err);
     }
 
 });
@@ -162,5 +236,6 @@ formaddingTask.addEventListener("submit",async (e)=>{
 fetchTasks();
 
 //filter selected
-const selected = document.querySelector("aside a[filter-data]");
+const asideSelected = document.querySelectorAll("aside a[data-filter ]");
 
+asideSelected.forEach(l => l.classList.remove("active"));
