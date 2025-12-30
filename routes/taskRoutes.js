@@ -24,29 +24,30 @@ miniapp.get("/tasks", async (req, res) => {
 miniapp.all("/", (req, res) => {
   res.redirect("/tasks");
 });
-//get un singolo task con id
 
+//get un singolo task con id
 function validaTaskId(req, res, next) {
-  const id = Number(req.body.id);
+  const id = Number(req.query.id);
   if (id <= 0 || isNaN(id) || !id)
     res.status(400).json({
       success: false,
       error: "task id non valido",
     });
   else {
-    res.taskId = id;
+    req.taskId = id;
     next();
   }
 }
 miniapp.get("/task", validaTaskId, async (req, res) => {
   try {
     const task = await taskdao.getTaskById(req.taskId);
-    res.json({
+    console.log(task);
+    return res.json({
       success: true,
       data: task,
     });
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: err.message,
     });

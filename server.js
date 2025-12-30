@@ -15,7 +15,7 @@ app.use(taskRoutes);  /******** */
 
 module.exports = app; /******** */
 
-const PORTA = 7500;
+const PORTA = 8500;
 
 app.listen(PORTA, () => {
   console.log("Server in ascolto Porta N°:",PORTA);

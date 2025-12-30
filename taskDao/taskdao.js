@@ -16,11 +16,17 @@ exports.listaAllTasks = function () {
 exports.getTaskById = function (id) {
   return new Promise((resolve, reject) => {
     const sql = "SELECT * FROM task WHERE id=?";
+    console.log("DB: get task: id=",id);
     db.get(sql, [id], (err, rows) => {
       if (err) {
         console.log("ci è stato un errore a livello della data base");
         return reject(err);
-      } else resolve(rows);
+      }
+      if(!rows) {
+        console.log("Nessun task trovato con id:", id);
+        return reject(new Error("Task non trovato"));
+      }
+       else resolve(rows);
     });
   });
 };
