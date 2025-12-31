@@ -126,9 +126,112 @@
     display:flex;
     justify-content: space-between;
     gap:150px;
-     flex-direction:row !important;
+    flex-direction:row !important;
   }
 .containerData_DeleGap{
   display:flex;
   gap:10px;
+}
+html, body[id ="signInBody"] {
+  overflow-x: hidden; 
+  overscroll-behavior: none; 
+}
+body[id ="signInBody"]{
+  background-image: url("../utilities/background.jpg");
+  background-position: center;
+  background-repeat: fixed;
+  background-size: cover;
+  display:flex;
+  justify-content: center ;
+  align-items: center ;
+  height: 90vh;
+}
+nav[id="signInNav"]{
+  background-color: #ffffff;
+  position: fixed;
+  width:600px;
+  height: 400px auto;
+  margin:10px;
+  border-radius: 15px;
+  padding:0px;
+}
+#titletype{
+  margin-bottom: 30px !important;
+  padding: 0px;
+
+}
+#signInNav h3{
+  display: block;
+  font-size: 30px;           /* Dimensione leggibile */
+  font-weight: 600;         /* Titolo leggermente più marcato */
+  margin-bottom: 5px;       /* Spazio tra titolo e campo */
+  color: #ffffff;              /* Contrasto elevato per accessibilità */
+  font-family: sans-serif;
+  background-color:#163007;
+  padding: 15px;
+  border-radius: 15px 15px 0px 0px;
+  margin:0px;
+}
+#signInNav label{
+  display: block;
+  font-size: 16px;           /* Dimensione leggibile */
+  font-weight: 600;         /* Titolo leggermente più marcato */
+  margin-bottom: 8px;       /* Spazio tra titolo e campo */
+  color: #333;              /* Contrasto elevato per accessibilità */
+  font-family: sans-serif; 
+}
+#signIn{
+  padding:10px 0px 0px 25px;
+}
+#signIn input{
+  padding: 6px;
+  width:500px;
+  border-radius: 5px;
+  margin: 5px;
+}
+#signIn div {
+  display: flex;
+  flex-direction: column; /* label sopra, input sotto */
+  margin-bottom: 10px;   /* spazio tra i campi */
+}
+#signInSubmitBtn{
+  width: 100px;
+  padding:5px;
+  border-radius: 5px;
+  position:relative;
+  left:73%;
+  border:none;
+  background-color: #06f125;
+  padding:8px;
+}
+#signInSubmitBtn:hover{
+    background-color: #01ca15;
+}
+#signIn a{
+  color:rgb(47, 67, 255);
+  font-weight: 900;
+}
+#ricordamiInput{
+  width:20px;
+  height:20px;
+  margin: 0px;
+  padding: 0;
+  cursor: pointer;
+  position:relative;
+  left:-200px;
+}
+#ricordami{
+  display: flex;
+  flex-direction: row !important; /* AGGIUNGI */
+  align-items: center;
+  gap: 0px;
+  margin-top: 5px;
+  justify-content: flex-start; /* AGGIUNGI */
+
+}
+#ricordami label {
+  margin: 0; /* spazio solo a sinistra della label *//* peso normale per differenziare dai campi obbligatori */
+  cursor: pointer;
+  color: #555;
+  user-select: none; /* impedisce la selezione del testo */
 }

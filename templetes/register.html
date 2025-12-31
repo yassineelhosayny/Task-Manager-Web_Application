@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href = "../public/custom.css">
+    <title>Registrazione</title>
+</head>
+<body id ="signInBody">
+  <nav id ="signInNav">
+    <div id="titletype"><h3>Registrazione</h3></div>
+
+    <form id="signIn">
+         <div>
+            <label for="nome">Nome:</label>
+            <input name ="nome" type="text" placeholder ="inserici il tuo nome" required>
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input name ="email" type="email" placeholder ="inserici il tuo email" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input name ="password" type="password" placeholder ="inserici il tuo password"required>
+        </div>
+        <div id="ricordami">
+            <label for="ricordamiInput">Ricordami</label>
+            <input id ="ricordamiInput" name ="ricordami" type="checkbox">
+        </div>
+        <p> Hai un account? <a href ="signIn.html">Accedi!</a> oppure Torna a <a>Home!</a></p>
+        <div>
+            <button id="signInSubmitBtn">Registra</button>
+        </div>
+        
+    </form>
+</nav>
+</body>
+</html>
