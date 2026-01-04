@@ -1,7 +1,31 @@
 const express =require('express');
+const session = require("express-session");
 const miniapp = express.Router();  /****mini server per route soto il server principale app */
 const taskdao = require("../taskDao/taskdao");
+const sessionDb = require("connect-sqlite3")(session);
+//per stringa random come secret in session
+require("dotenv").config();
 
+app.use(session({
+  name:"connect.sid",
+  secret:process.env.SESSION_SECRET,
+  rolling:true,
+  resave:false,
+  saveUninitialized: false,
+
+  cookie:{
+    maxAge : 1000*60*60*24, //un giorno
+    samSite: "lax",
+    secure: false,
+    httpOnly:true
+  },
+
+  store: new sessionDb({
+    db:"../db/task.db",
+    table:"session"
+  })
+
+}));
 
 //get lista dei libri basando su filterSelected: UN SINGOLO PARAMETRO nel QUERY.
 miniapp.get("/tasks", async (req, res) => {

@@ -186,7 +186,7 @@ formaddingTask.addEventListener("submit",async (e)=>{
                 });
                 const data = await res.json();
                 if(res.ok || data.success)
-                    fetchTasks();
+                    filterSelected("tutti");
                 console.log("task aggiuno con successo!");
                 formaddingTask.reset();
                 formAddTask.classList.remove("show");
@@ -201,7 +201,7 @@ formaddingTask.addEventListener("submit",async (e)=>{
                     const update = await res.json();
                     console.log(update.data);
                     if(res.ok || update.success)
-                        fetchTasks();
+                        filterSelected("tutti");
 
                     formaddingTask.reset();
                     formAddTask.classList.remove("show");
