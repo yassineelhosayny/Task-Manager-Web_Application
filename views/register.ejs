@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href = "../public/custom.css">
-    <title>Registrazione</title>
+    <link rel="stylesheet" href = "custom.css">
+    <title>Task Manager-Registrazione</title>
 </head>
 <body id ="signInBody">
   <nav id ="signInNav">
     <div id="titletype"><h3>Registrazione</h3></div>
 
-    <form id="signIn">
+    <form id="signIn" method="POST" action="/login">
          <div>
             <label for="nome">Nome:</label>
             <input name ="nome" type="text" placeholder ="inserici il tuo nome" required>
@@ -27,7 +27,7 @@
             <label for="ricordamiInput">Ricordami</label>
             <input id ="ricordamiInput" name ="ricordami" type="checkbox">
         </div>
-        <p> Hai un account? <a href ="signIn.html">Accedi!</a> oppure Torna a <a>Home!</a></p>
+        <p> Hai un account? <a href ="/login">Accedi!</a> oppure Torna a <a href="index.html">Home!</a></p>
         <div>
             <button id="signInSubmitBtn">Registra</button>
         </div>

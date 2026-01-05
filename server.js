@@ -5,7 +5,7 @@ app.use(express.json()); /***deve essere prima di altri cosi gli eriditano */
 /*const taskdao = require("./taskDao/taskdao");*/
 
 app.set("view engine", "ejs");
-app.set("templetes", __dirname + "/templetes");
+app.set("views","./views");
 
 const taskRoutes = require('./routes/taskRoutes');  /**** */
 

@@ -7,10 +7,72 @@ exports.listaAllTasks = function () {
       if (err) {
         console.log("DB enable to get data from data base");
         return reject(err);
-      } else resolve(rows);
+      } else return resolve(rows);
     });
   });
 };
+//getUtente
+exports.getUtenteByEmail = function (email){
+    return new Promise((resolve,reject)=>{
+      const queryemail = "SELECT id,ruolo FROM utente WHERE email = ?";
+  
+      db.get(queryemail,[email],(err,utente)=>{
+          if(err){
+            return reject(err);
+          }
+          else if(!utente){
+            return resolve(null);
+          }
+          else{
+              return resolve({
+                id : utente.id,
+                ruolo: utente.ruolo
+              })
+            }
+      });
+    });
+}
+
+//registrazione
+exports.registraUtente = function (nome,email,passwordHash){
+     return new Promise((resolve,reject)=>{
+      const ruolo = "utente";
+
+      const query = "INSERT INTO utente(nomeUtente,email,passwordBcrypted,ruolo) Values (?,?,?,?)";
+      db.run(query,[nome,email,passwordHash,ruolo],function (err){
+        if(err){
+          console.log("errore: nella registrazione del utente!");
+          return  reject(err);
+        }
+        else{
+          console.log(`utente ${email}, Registrazione effetuata`);
+          resolve({
+            id: this.lastID,
+            ruolo
+          })
+        }
+        
+      });
+     });
+}
+//inserimento token
+exports.salvaToken = function(id,token,age,tipo){
+  return new Promise((resolve,reject)=>{
+    const query = "INSERT INTO tokens(id_utente,token,tipo,data_fine) VALUES (?,?,?,?)"
+    db.run(query,[id,token,tipo,age],function(err){
+      if(err){
+        console.log(`errore nel inserimento del token per utente :${id}`);
+        return reject(err);
+      }
+      else {
+        return resolve({
+          changes: this.changes,
+        })
+      }
+    });
+
+  });
+}
 
 //Task by id
 exports.getTaskById = function (id) {
