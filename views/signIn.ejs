@@ -14,10 +14,16 @@
         <div>
             <label for="email">Email:</label>
             <input name ="email" type="email" placeholder ="inserici il tuo email" required>
+            <% if (errors && errors.email) { %>
+            <small class="error"><%= errors.email %></small>
+            <% } %>
         </div>
         <div>
             <label for="password">Password:</label>
             <input name ="password" type="password" placeholder ="inserici il tuo password"required>
+            <% if (errors && errors.password) { %>
+            <small class="error"><%= errors.password %></small>
+            <% } %>
         </div>
         <div id="ricordami">
             <label for="ricordamiInput">Ricordami</label>

@@ -78,12 +78,12 @@ function assegnaSession(req,id,nome,ruolo){
 }
 async function ricordamiToken(req,res){
         const token = crypto.randomBytes(32).toString('hex');
-        const age = Date.now()+ 1000*60*60*24*30; //30giorni
+        const age = new Date(Date.now() + 1000*60*60*24*30).toISOString(); //30giorni
         const tipo = 'ricorda_mi';
 
         await taskdao.salvaToken(req.session.utente,token,age,tipo);
+
         return {token,age,tipo};
-        
 }
 //logOut
 miniapp.post("/logout",async (req,res)=>{
@@ -134,6 +134,8 @@ async function haAcesso(req,res){
 
   if(token){
     const idUtente = await taskdao.getIdToken(token);
+    if (!idUtente) return false;
+
     const utente  = await taskdao.getUtenteById(idUtente.id_utente);
     assegnaSession(req,utente.id,utente.nome,utente.ruolo);
     return true;
@@ -145,7 +147,8 @@ miniapp.post("/login",getReady,async(req,res)=>{
   
 if(await haAcesso(req,res)){
    return res.render("index",{
-      utente : { nome: req.session.nome }
+      utente : { nome: req.session.nome },
+      errors:null
    });
 }
  //se non ci niente fa il login
@@ -153,7 +156,7 @@ if(await haAcesso(req,res)){
 else{
   const utente = await taskdao.getUtenteByEmail(req.email);
   if(!utente){
-    return res.status(401).render("/login",{
+    return res.render("signIn",{
       errors:{
         email: "Email o Password errati!."
       }
@@ -161,7 +164,7 @@ else{
   }
   const passwordValido = await bcrypt.compare(req.password,utente.password);
   if(!passwordValido){
-    return res.status(401).render("/login",{
+    return res.status(401).render("signIn",{
       errors:{
         email: "Email o Password errati!."
       }
@@ -184,7 +187,8 @@ else{
   return res.render("index",{
       utente :{
         nome: req.session.nome
-      }
+      },
+      errors:null
     })
 
  }
@@ -205,7 +209,13 @@ miniapp.post("/registrazione",validaDati,async (req,res)=>{
 
       const utente = await taskdao.registraUtente(req.nome,req.email,req.passwordHash);
       if(!utente)
-        throw new Error("Errore: la registrazione non è stata effetuata");
+        if(esiste){
+        return res.render("register",{
+          errors: {
+            email:"la registrazione non è stata efettuata!"
+          }
+        })
+      }
 
       //salva sessionDb 
        assegnaSession(req,utente.id,utente.nome,utente.ruolo);
@@ -225,7 +235,8 @@ miniapp.post("/registrazione",validaDati,async (req,res)=>{
       return res.render("index",{
         utente:{
           nome: utente.nome
-        }
+        },
+        errors:null
       });
 
     }catch(err){
@@ -239,18 +250,18 @@ miniapp.post("/registrazione",validaDati,async (req,res)=>{
 miniapp.all("/home", (req, res) => {
   res.render("index",{
       utente: req.session?.nome ? 
-      {
-        nome: req.session.nome,
-      }
-      : null
+      { nome: req.session.nome, }: null,
+      errors:null
     }
 )});
 miniapp.all("/",(req,res)=>{
-  res.redirect("/home")
+  res.redirect("/home");
 });
 //login
 miniapp.get("/login",(req,res)=>{
-    res.render("signIn");
+    res.render("signIn",{
+      errors:null
+    });
 });
 
 //register
@@ -262,12 +273,31 @@ miniapp.get("/register",(req,res)=>{
 //get lista dei libri basando su filterSelected: UN SINGOLO PARAMETRO nel QUERY.
 miniapp.get("/tasks", async (req, res) => {
   try {
+  const idUtente = req.session?.utente;  //
+  const ruoloUtente = req.session?.ruolo; //
+
     const filter = req.query || {};
+      if(!idUtente && (filter["privato"] === "1" || filter["privato"] === "0")){
+      return res.status(401).json({
+        success: false,
+        error: "Devi effettuare il login per accedere a questo contenuto",
+        redirectTo: "/login"  // Suggerisci dove andare
+      });
+    }
       //restiusci i task basando al filterSelected
-    const  tasks = await taskdao.cercaTask(filter);
+    const  tasksPublic = await taskdao.cercaTask(filter,idUtente);
+    if(!tasksPublic){
+      res.render("index",{
+        errors:{
+          general: "errore nella ricarica del filter!"
+        }
+      });
+    }
     res.json({
       success: true,
-      data: tasks,
+      id: idUtente? idUtente: null,  //
+      ruolo: ruoloUtente? ruoloUtente : null, //
+      data: tasksPublic,
     });
   } catch (err) {
     res.status(500).json({
@@ -309,10 +339,16 @@ miniapp.get("/task", validaTaskId, async (req, res) => {
 });
 //add un nuovo task
 miniapp.post("/task/addingTask", async (req, res) => {
-  const { descrizione, importante, privato, progetto, scadenza, completato } =
-    req.body;
+  //controllo se authenticato
+  if(!(await haAcesso(req,res))){
+   return res.redirect("/login");
+}
+
+  const { descrizione, importante, privato, progetto, scadenza, completato } = req.body;
+  const id_utente = req.session.utente;
   try {
     const insert = await taskdao.aggiungiTask(
+      id_utente,
       descrizione,
       importante,
       privato,
@@ -334,6 +370,12 @@ miniapp.post("/task/addingTask", async (req, res) => {
 //modificare "put" un task
 miniapp.put("/task/modificaTask", async (req, res) => {
   try {
+    //controllo se authenticato
+  if(!(await haAcesso(req,res))){
+   return res.redirect("/login");
+}
+    const id_utente = req.session.utente;
+    const ruolo = req.session.ruolo;
     const id = req.body.id;
     const { descrizione, importante, privato, progetto, scadenza, completato } =
       req.body;
@@ -347,15 +389,23 @@ miniapp.put("/task/modificaTask", async (req, res) => {
       scadenza,
       completato
     );*/
-    const update = await taskdao.modificaTaskDinamico(id,req.body);
-    if (update.changes === 0)
-      return res.status(404).json({
-        success: false,
-        error: "Task Non Trovata",
-      });
-    res.json({
-      success: true,
-      data: update,
+    const task = await taskdao.getTaskById(id);
+
+    if(task.id_utente === id_utente || ruolo === "admin"){
+        const update = await taskdao.modificaTaskDinamico(id,req.body);
+        if (update.changes === 0)
+          return res.status(404).json({
+            success: false,
+            error: "Task Non Trovata",
+          });
+        return res.json({
+          success: true,
+          data: update,
+        });
+    }
+     return res.status(403).json({
+      success: false,
+      error: "Non poi modificare una task non il tuo!!",
     });
   } catch (err) {
     res.status(400).json({
@@ -367,17 +417,38 @@ miniapp.put("/task/modificaTask", async (req, res) => {
 //cancellare un task "delete"
 miniapp.delete("/task/rimuoverTask", async (req, res) => {
   try {
+        //controllo se authenticato
+  if(!(await haAcesso(req,res))){
+   return res.redirect("/login");
+    }
+    const id_utente = req.session.utente;
+    const ruolo = req.session.ruolo;
     const id = Number(req.body.id);
-    const rimoved = await taskdao.rimuoveTask(id);
+
+    const task = await taskdao.getTaskById(id);
+    if (!task) {
+        return res.status(404).json({
+          success: false,
+          error: "Task non trovata",
+        });
+      }
+
+    if(task.id_utente === id_utente || ruolo === "admin"){
+    const rimoved = await taskdao.rimuoveTask(id,id_utente);
     if (rimoved.change === 0) {
       return res.status(404).json({
         success: false,
         error: "Task non trovato",
       });
     }
-    res.json({
+    return res.json({
       success: true,
       data: rimoved,
+    });
+    }
+    return res.status(403).json({
+      success: false,
+      error: "Non poi cancellare una task non il tuo!!",
     });
   } catch (err) {
     res.status(400).json({
@@ -388,6 +459,7 @@ miniapp.delete("/task/rimuoverTask", async (req, res) => {
 });
 //segnare un task come completato
 function idIsValid(req,res,next){
+  
   const id = Number(req.body.id);
   if(isNaN(id) || id === undefined || id<=0){
     return res.status(400).json({
@@ -400,6 +472,15 @@ function idIsValid(req,res,next){
 }
 miniapp.put("/task/taskCompletata",idIsValid, async (req,res)=>{
   try{
+    if(!(await haAcesso(req,res))){
+   return res.redirect("/login");
+    }
+    const id_utente = req.session.utente;
+    const task = await taskdao.getTaskById(req.taskId);
+
+        console.log("server stell alive.");
+    if(task.id_utente === id_utente){
+          console.log("server stell alive.");
     const taskcomplited = await taskdao.modificaTaskDinamico(req.taskId,req.body);
     if(taskcomplited.change === 0){
       return res.status(404).json({
@@ -407,9 +488,14 @@ miniapp.put("/task/taskCompletata",idIsValid, async (req,res)=>{
         error: "Task non trovato"
       });
     }
-    res.json({
+    return res.json({
       success: true,
       data: taskcomplited
+    });
+  }
+  return res.status(403).json({
+      success: false,
+      error: "Non poi assegnare una task come completata se non il tuo!!",
     });
   }catch(err){
       res.status(500).json(
@@ -427,7 +513,7 @@ miniapp.put("/task/taskCompletata",idIsValid, async (req,res)=>{
 //generic flitre di un task con certe proprietà
 miniapp.get("/task/cercaTask", async (req,res)=>{
   try{
-    const result = await taskdao.cercaTask(req.query);
+    const result = await taskdao.cercaTask(req.query,req.session?.utente);
     res.json({
       success: true,
       data: result

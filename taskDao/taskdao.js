@@ -26,7 +26,7 @@ exports.getUtenteByEmail = function (email) {
           id: utente.id,
           nome: utente.nameUtente,
           ruolo: utente.ruolo,
-          password: utente.passwordBcrypted
+          password: utente.passwordBcrypted,
         });
       }
     });
@@ -46,7 +46,7 @@ exports.getUtenteById = function (id) {
           id: row.id,
           nome: row.nameUtente,
           ruolo: row.ruolo,
-          password: row.passwordBcrypted
+          password: row.passwordBcrypted,
         });
       }
     });
@@ -101,7 +101,8 @@ exports.deleteToken = function (token) {
       if (err) {
         return reject(err);
       }
-      if(this.changes === 0) console.log("token non esiste"); else console.log("token è stato cancelato.");
+      if (this.changes === 0) console.log("token non esiste");
+      else console.log("token è stato cancelato.");
       return resolve({
         success: true,
         message:
@@ -113,11 +114,12 @@ exports.deleteToken = function (token) {
 //get token
 exports.getIdToken = function (token) {
   return new Promise((resolve, reject) => {
-    const query = "SELECT id_utente FROM tokens WHERE token = ? AND data_fine > CURRENT_TIMESTAMP ";
+    const query =
+      "SELECT id_utente FROM tokens WHERE token = ? AND data_fine > CURRENT_TIMESTAMP ";
     db.get(query, [token], (err, tokenid) => {
       if (err) {
         return reject(err);
-      } else if (!this.lastId) {
+      } else if (!tokenid) {
         resolve(null);
       }
       return resolve(tokenid);
@@ -138,7 +140,8 @@ exports.getTaskById = function (id) {
       if (!rows) {
         console.log("Nessun task trovato con id:", id);
         return reject(new Error("Task non trovato"));
-      } else resolve(rows);
+      }
+       else resolve(rows);
     });
   });
 };
@@ -146,6 +149,7 @@ exports.getTaskById = function (id) {
 //add task
 
 exports.aggiungiTask = function (
+  id_utente,
   descrizione,
   importante,
   privato,
@@ -155,14 +159,23 @@ exports.aggiungiTask = function (
 ) {
   return new Promise((resolve, reject) => {
     const sql =
-      "INSERT INTO task(descrizione,importante,privato,progetto,scadenza,completato) VALUES (?,?,?,?,?,?)";
+      "INSERT INTO task(descrizione,importante,privato,progetto,scadenza,completato,id_utente) VALUES (?,?,?,?,?,?,?)";
     db.run(
       sql,
-      [descrizione, importante, privato, progetto, scadenza, completato],
+      [
+        descrizione,
+        importante,
+        privato,
+        progetto,
+        scadenza,
+        completato,
+        id_utente,
+      ],
       function (err) {
         if (err) {
           console.log(
             "DB: errore nel inserimento di questa task: ",
+            id_utente,
             descrizione,
             importante,
             privato,
@@ -218,10 +231,10 @@ exports.modificareTask = function (
 };
 
 //cancella una task
-exports.rimuoveTask = function (id) {
+exports.rimuoveTask = function (id, idU) {
   return new Promise((resolve, reject) => {
-    const sql = "DELETE FROM task WHERE id=?";
-    db.run(sql, [id], function (err) {
+    const sql = "DELETE FROM task WHERE id=? AND id_utente=?";
+    db.run(sql, [id, idU], function (err) {
       if (err) {
         console.log("DB: errore nella cancelazione del taskcon id= ", id);
         return reject(err);
@@ -285,14 +298,31 @@ exports.modificaTaskDinamico = function (id, variabile) {
     });
   });
 };
+exports.getAllTasksPrivate = function (id) {
+  return new Promise((resolve, reject) => {
+    const query = "SELECT * FROM task WHERE id_utente=? AND privato = ? ";
+    db.all(query, [id, 1], (err, tasks) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(tasks);
+    });
+  });
+};
 
-exports.cercaTask = function (attributiObj) {
+
+exports.cercaTask = function (attributiObj, idU) {
+  console.log("=== DEBUG cercaTask ===");
+  console.log("attributiObj ricevuto:", JSON.stringify(attributiObj));
+  console.log("idU:", idU);
   if (!attributiObj || typeof attributiObj !== "object") {
     attributiObj = {};
   }
 
+  const isGuest = !idU;
+
   return new Promise((resolve, reject) => {
-    const attributeAspettate = [
+    const attributiConsentiti = [
       "descrizione",
       "importante",
       "privato",
@@ -300,80 +330,131 @@ exports.cercaTask = function (attributiObj) {
       "scadenza",
       "completato",
     ];
+
     const attributi = Object.keys(attributiObj).filter((k) =>
-      attributeAspettate.includes(k)
+      attributiConsentiti.includes(k)
     );
+
+    // ---- BASE QUERY (UNICA STRUTTURA) ----
+    let baseSelect = `
+      SELECT
+        task.id            AS id,
+        task.descrizione,
+        task.importante,
+        task.privato,
+        task.progetto,
+        task.scadenza,
+        task.completato,
+        task.id_utente,
+        utente.nameUtente  AS nome_proprietario
+      FROM task
+      JOIN utente ON task.id_utente = utente.id
+    `;
+
+    let where = [];
+    let params = [];
+
+    // ---- PERMISSIONI ----
+    if (isGuest) {
+      where.push("task.privato = 0");
+    } else {
+      where.push("(task.id_utente = ? OR task.privato = 0)");
+      params.push(idU);
+
+      //condivisi
+      if(attributiObj["privato"] === "0" && attributi.length===1){
+        const query = `
+      SELECT
+        task.id            AS id,
+        task.descrizione,
+        task.importante,
+        task.privato,
+        task.progetto,
+        task.scadenza,
+        task.completato,
+        task.id_utente,
+        utente.nameUtente  AS nome_proprietario
+      FROM task
+      JOIN utente ON task.id_utente = utente.id
+      WHERE task.privato = 0 AND task.id_utente = ?
+    `;
+     
+     params =[idU];
+     return db.all(query, params, (err, rows) => {
+        if (err) {
+          console.log("DB: errore nel filtro DATE.");
+          return reject(err);
+        }
+        return resolve(rows);
+      });
+      }
+    }
+
+
+    // ---- NESSUN FILTRO ----
     if (attributi.length === 0) {
-      db.all("SELECT * FROM task", [], (err, rows) => {
+      const sql = `${baseSelect} WHERE ${where.join(" AND ")}`;
+
+      return db.all(sql, params, (err, rows) => {
         if (err) {
           console.log("DB: errore nella ricerca di task.");
           return reject(err);
-        } else {
-          return resolve(rows);
         }
+        resolve(rows);
       });
-      return;
     }
-    const conditions = attributi
-      .map((k) => {
-        if (k === "descrizione") {
-          return `${k} LIKE ?`;
-        } else {
-          return `${k} = ?`;
+
+    // ---- FILTRO SCADENZA (oggi / settimanali) ----
+    if (attributi.includes("scadenza") && attributi.length === 1) {
+      const oggi = new Date().toISOString().slice(0, 10);
+
+      if (attributiObj.scadenza === "oggi") {
+        where.push("DATE(task.scadenza) = DATE(?)");
+        params.push(oggi);
+      }
+
+      if (attributiObj.scadenza === "setimanali") {
+        const prossimi7 = new Date();
+        prossimi7.setDate(prossimi7.getDate() + 7);
+        const fine = prossimi7.toISOString().slice(0, 10);
+
+        where.push("DATE(task.scadenza) BETWEEN DATE(?) AND DATE(?)");
+        params.push(oggi, fine);
+      }
+
+      const sql = `${baseSelect} WHERE ${where.join(" AND ")}`;
+
+      return db.all(sql, params, (err, rows) => {
+        if (err) {
+          console.log("DB: errore nel filtro DATE.");
+          return reject(err);
         }
-      })
-      .join(" AND ");
-    const conditionsValore = attributi.map((k) => {
+        resolve(rows);
+      });
+    }
+     
+
+    // ---- FILTRI GENERICI ----
+    attributi.forEach((k) => {
       if (k === "descrizione") {
-        return `%${attributiObj[k]}%`;
+        where.push("task.descrizione LIKE ?");
+        params.push(`%${attributiObj[k]}%`);
       } else {
-        return attributiObj[k];
+        where.push(`task.${k} = ?`);
+        params.push(attributiObj[k]);
       }
     });
 
-    console.log("chiama del DB con filter:", conditionsValore);
-    console.log("chiama del DB con conditions:", conditions);
+    const sql = `${baseSelect} WHERE ${where.join(" AND ")}`;
 
-    if (attributi.includes("scadenza") && attributi.length === 1) {
-      const date = attributiObj["scadenza"];
-
-      let params, query;
-      const oggi = new Date().toISOString().slice(0, 10);
-      if (date === "oggi") {
-        //oggi
-
-        query = `SELECT * FROM task WHERE DATE(scadenza) = DATE(?)`;
-        params = [oggi];
-      } else if (date === "setimanali") {
-        const prossimi7 = new Date();
-        prossimi7.setDate(prossimi7.getDate() + 7);
-        const prossimi7Giorni = prossimi7.toISOString().slice(0, 10);
-
-        query = `SELECT * FROM task WHERE DATE(scadenza) BETWEEN DATE(?) AND DATE(?)`;
-        params = [oggi, prossimi7Giorni];
-      }
-
-      db.all(query, params, (err, rows) => {
-        if (err) {
-          console.log("DB: errore nel filtro di DATE!");
-          return reject(err);
-        } else {
-          console.log(`Task con filtrazione "${date}" trovati: ${rows.length}`);
-          return resolve(rows);
-        }
-      });
-      return;
-    }
-
-    const sql = `SELECT * FROM task WHERE ${conditions} `;
-    db.all(sql, [...conditionsValore], (err, rows) => {
+    db.all(sql, params, (err, rows) => {
       if (err) {
         console.log("DB: errore nella ricerca di task.");
         return reject(err);
-      } else {
-        console.log("Tasks trovate: ", rows);
-        resolve(rows);
       }
+      resolve(rows);
     });
   });
 };
+
+

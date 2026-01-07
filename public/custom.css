@@ -246,3 +246,24 @@ nav[id="signInNav"]{
 .logout-btn:hover {
   text-decoration: underline;
 }
+.spanNomeUtente{
+  margin:10px;
+  border-radius: 5px;
+  font-weight:200;
+  letter-spacing: 0.5px;       /* Distanzia leggermente le lettere */
+  color: #444;                 /* Grigio scuro invece di nero */
+  font-style: italic;   
+}
+
+.error{
+  background-color: rgba(255, 0, 0, 0.1); /* rosso chiaro con trasparenza */
+  border: 1px solid red;                  /* bordo rosso pieno */
+  color: red;                             /* testo rosso */
+  padding: 10px 15px;                     /* spazio interno */
+  border-radius: 6px;                     /* angoli leggermente arrotondati */
+  margin: 8px 0;                          /* distanza tra elementi */
+  font-size: 0.95em;                      /* leggermente più piccolo del normale */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* optional: leggero ombreggiamento */
+  width:86%;
+  align-items: center;
+}
