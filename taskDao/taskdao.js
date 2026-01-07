@@ -11,84 +11,134 @@ exports.listaAllTasks = function () {
     });
   });
 };
-//getUtente
-exports.getUtenteByEmail = function (email){
-    return new Promise((resolve,reject)=>{
-      const queryemail = "SELECT id,ruolo FROM utente WHERE email = ?";
-  
-      db.get(queryemail,[email],(err,utente)=>{
-          if(err){
-            return reject(err);
-          }
-          else if(!utente){
-            return resolve(null);
-          }
-          else{
-              return resolve({
-                id : utente.id,
-                ruolo: utente.ruolo
-              })
-            }
-      });
+//getUtenteByEmail
+exports.getUtenteByEmail = function (email) {
+  return new Promise((resolve, reject) => {
+    const queryemail = "SELECT * FROM utente WHERE email = ?";
+
+    db.get(queryemail, [email], (err, utente) => {
+      if (err) {
+        return reject(err);
+      } else if (!utente) {
+        return resolve(null);
+      } else {
+        return resolve({
+          id: utente.id,
+          nome: utente.nameUtente,
+          ruolo: utente.ruolo,
+          password: utente.passwordBcrypted
+        });
+      }
     });
-}
+  });
+};
+//getUtenteById
+exports.getUtenteById = function (id) {
+  return new Promise((resolve, reject) => {
+    const query = "SELECT * FROM utente WHERE id = ?";
+    db.get(query, [id], (err, row) => {
+      if (err) {
+        return reject(err);
+      } else if (!row) {
+        return resolve(null);
+      } else {
+        return resolve({
+          id: row.id,
+          nome: row.nameUtente,
+          ruolo: row.ruolo,
+          password: row.passwordBcrypted
+        });
+      }
+    });
+  });
+};
 
 //registrazione
-exports.registraUtente = function (nome,email,passwordHash){
-     return new Promise((resolve,reject)=>{
-      const ruolo = "utente";
+exports.registraUtente = function (nome, email, passwordHash) {
+  return new Promise((resolve, reject) => {
+    const ruolo = "utente";
 
-      const query = "INSERT INTO utente(nomeUtente,email,passwordBcrypted,ruolo) Values (?,?,?,?)";
-      db.run(query,[nome,email,passwordHash,ruolo],function (err){
-        if(err){
-          console.log("errore: nella registrazione del utente!");
-          return  reject(err);
-        }
-        else{
-          console.log(`utente ${email}, Registrazione effetuata`);
-          resolve({
-            id: this.lastID,
-            ruolo
-          })
-        }
-        
-      });
-     });
-}
-//inserimento token
-exports.salvaToken = function(id,token,age,tipo){
-  return new Promise((resolve,reject)=>{
-    const query = "INSERT INTO tokens(id_utente,token,tipo,data_fine) VALUES (?,?,?,?)"
-    db.run(query,[id,token,tipo,age],function(err){
-      if(err){
-        console.log(`errore nel inserimento del token per utente :${id}`);
+    const query =
+      "INSERT INTO utente(nameUtente,email,passwordBcrypted,ruolo) Values (?,?,?,?)";
+    db.run(query, [nome, email, passwordHash, ruolo], function (err) {
+      if (err) {
+        console.log("errore: nella registrazione del utente!");
         return reject(err);
-      }
-      else {
-        return resolve({
-          changes: this.changes,
-        })
+      } else {
+        console.log(`utente ${email}, Registrazione effetuata`);
+        resolve({
+          id: this.lastID,
+          ruolo,
+          nome,
+        });
       }
     });
-
   });
-}
+};
+//inserimento token
+exports.salvaToken = function (id, token, age, tipo) {
+  return new Promise((resolve, reject) => {
+    const query =
+      "INSERT INTO tokens(id_utente,token,tipo,data_fine) VALUES (?,?,?,?)";
+    db.run(query, [id, token, tipo, age], function (err) {
+      if (err) {
+        console.log(`errore nel inserimento del token per utente :${id}`);
+        return reject(err);
+      } else {
+        return resolve({
+          changes: this.changes,
+        });
+      }
+    });
+  });
+};
+//cancella token
+exports.deleteToken = function (token) {
+  return new Promise((resolve, reject) => {
+    const query = "DELETE FROM tokens WHERE token = ? ";
+
+    db.run(query, [token], (err) => {
+      if (err) {
+        return reject(err);
+      }
+      if(this.changes === 0) console.log("token non esiste"); else console.log("token è stato cancelato.");
+      return resolve({
+        success: true,
+        message:
+          this.changes === 0 ? "token non esiste" : "token è stato cancelato.",
+      });
+    });
+  });
+};
+//get token
+exports.getIdToken = function (token) {
+  return new Promise((resolve, reject) => {
+    const query = "SELECT id_utente FROM tokens WHERE token = ? AND data_fine > CURRENT_TIMESTAMP ";
+    db.get(query, [token], (err, tokenid) => {
+      if (err) {
+        return reject(err);
+      } else if (!this.lastId) {
+        resolve(null);
+      }
+      return resolve(tokenid);
+    });
+  });
+};
 
 //Task by id
 exports.getTaskById = function (id) {
   return new Promise((resolve, reject) => {
     const sql = "SELECT * FROM task WHERE id=?";
-    console.log("DB: get task: id=",id);
+    console.log("DB: get task: id=", id);
     db.get(sql, [id], (err, rows) => {
       if (err) {
         console.log("ci è stato un errore a livello della data base");
         return reject(err);
       }
-      if(!rows) {
+      if (!rows) {
         console.log("Nessun task trovato con id:", id);
         return reject(new Error("Task non trovato"));
-      }
-       else resolve(rows);
+      } else resolve(rows);
     });
   });
 };
@@ -237,11 +287,10 @@ exports.modificaTaskDinamico = function (id, variabile) {
 };
 
 exports.cercaTask = function (attributiObj) {
-  
   if (!attributiObj || typeof attributiObj !== "object") {
     attributiObj = {};
-}
-   
+  }
+
   return new Promise((resolve, reject) => {
     const attributeAspettate = [
       "descrizione",
@@ -265,13 +314,15 @@ exports.cercaTask = function (attributiObj) {
       });
       return;
     }
-    const conditions = attributi.map((k) => {
-      if (k === "descrizione") {
-        return `${k} LIKE ?`;
-      } else {
-        return `${k} = ?`;
-      }
-    }).join(" AND ");
+    const conditions = attributi
+      .map((k) => {
+        if (k === "descrizione") {
+          return `${k} LIKE ?`;
+        } else {
+          return `${k} = ?`;
+        }
+      })
+      .join(" AND ");
     const conditionsValore = attributi.map((k) => {
       if (k === "descrizione") {
         return `%${attributiObj[k]}%`;
@@ -280,34 +331,30 @@ exports.cercaTask = function (attributiObj) {
       }
     });
 
-    console.log("chiama del DB con filter:",conditionsValore );
-    console.log("chiama del DB con conditions:",conditions);
+    console.log("chiama del DB con filter:", conditionsValore);
+    console.log("chiama del DB con conditions:", conditions);
 
-
-    if(attributi.includes("scadenza") && attributi.length === 1){
+    if (attributi.includes("scadenza") && attributi.length === 1) {
       const date = attributiObj["scadenza"];
-      
-     
-      let params,query ;
-      const oggi = new Date().toISOString().slice(0,10);
-      if(date === "oggi"){
-        //oggi
-      
-      query = `SELECT * FROM task WHERE DATE(scadenza) = DATE(?)`;
-        params = [oggi];
-      }
 
-      else if(date === "setimanali"){
+      let params, query;
+      const oggi = new Date().toISOString().slice(0, 10);
+      if (date === "oggi") {
+        //oggi
+
+        query = `SELECT * FROM task WHERE DATE(scadenza) = DATE(?)`;
+        params = [oggi];
+      } else if (date === "setimanali") {
         const prossimi7 = new Date();
         prossimi7.setDate(prossimi7.getDate() + 7);
-        const prossimi7Giorni = prossimi7.toISOString().slice(0,10);
-        
+        const prossimi7Giorni = prossimi7.toISOString().slice(0, 10);
+
         query = `SELECT * FROM task WHERE DATE(scadenza) BETWEEN DATE(?) AND DATE(?)`;
         params = [oggi, prossimi7Giorni];
       }
 
-     db.all(query, params, (err, rows) => {
-        if(err){
+      db.all(query, params, (err, rows) => {
+        if (err) {
           console.log("DB: errore nel filtro di DATE!");
           return reject(err);
         } else {

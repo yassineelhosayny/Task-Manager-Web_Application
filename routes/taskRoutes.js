@@ -5,6 +5,10 @@ const crypto = require('crypto');
 const bcrypt = require("bcrypt");
 const miniapp = express.Router();  /****mini server per route soto il server principale app */
 const taskdao = require("../taskDao/taskdao");
+const cookieParser = require("cookie-parser");
+
+
+miniapp.use(cookieParser());
 
 
 
@@ -39,30 +43,152 @@ async function hashPassword(pass){
 
 async function validaDati(req,res,next){
   const {nome,email,password,ricordami} = req.body;
-  if(!nome || nome.trim().length > 20 || nome.trim().length < 2)
-    return res.status(400).json({
-        success:false,
-        error: "Nome non valido!!"
+  if(!nome || nome?.trim().length > 20 || nome?.trim().length < 2)
+    return res.render("register",{
+      errors:{
+        nome:"Nome non valido"
+      }
     });
   if(!email.includes("@")){
-    return res.status(400).json({
-        success:false,
-        error: "Email non valido!!"
+    return res.render("register",{
+        error: {
+          email: "Email non valido!!"}
     });
   }
   if(password.length < 4){ //solo per facillitare i test manuale
-      return res.status(400).json({
-        success:false,
-        error: "Password troppo corto!!"
-    });
+      return res.render("register",{
+        errors:{
+          password:"Password troppo corto"
+        }
+      });
   }
   req.nome =nome.trim();
   req.email = email;
   req.passwordHash = await hashPassword(password);
-  req.ricordami = ricordami === true ? true : false;
+  req.ricordami = ricordami === "on";
+
 
   next();
 }
+//assegnaSession
+function assegnaSession(req,id,nome,ruolo){
+      req.session.utente = id;
+      req.session.ruolo = ruolo;
+      req.session.nome = nome;
+}
+async function ricordamiToken(req,res){
+        const token = crypto.randomBytes(32).toString('hex');
+        const age = Date.now()+ 1000*60*60*24*30; //30giorni
+        const tipo = 'ricorda_mi';
+
+        await taskdao.salvaToken(req.session.utente,token,age,tipo);
+        return {token,age,tipo};
+        
+}
+//logOut
+miniapp.post("/logout",async (req,res)=>{
+  //clear token
+  const token = req.cookies.ricorda_mi;
+  const deleToken = await taskdao.deleteToken(token);
+
+  res.clearCookie("ricorda_mi");
+  
+  //clear session
+  req.session.destroy(err=>{
+    if(err)
+      res.status(500).send("Errore nel logout!");
+
+      res.clearCookie("connect.sid");
+      res.redirect("/home");
+  });
+});
+async function getReady(req,res,next){
+  const {email,password,ricordami} = req.body;
+
+  if(!email.includes("@")){
+    return res.render("register",{
+        error: {
+          email: "Email non valido!!"}
+    });
+  }
+  if(password.length < 4){ //solo per facillitare i test manuale
+      return res.render("register",{
+        errors:{
+          password:"Password troppo corto"
+        }
+      });
+  }
+  req.email = email.trim();
+  req.password = password;
+  req.ricordami = ricordami === "on";
+
+  next();
+}
+async function haAcesso(req,res){
+  //se ci una sessione 
+  if(req.session?.utente){
+   return true;
+  }
+  //se ci un token
+  const token = req.cookies.ricorda_mi;
+
+  if(token){
+    const idUtente = await taskdao.getIdToken(token);
+    const utente  = await taskdao.getUtenteById(idUtente.id_utente);
+    assegnaSession(req,utente.id,utente.nome,utente.ruolo);
+    return true;
+  }
+  else return false;
+}
+//login
+miniapp.post("/login",getReady,async(req,res)=>{
+  
+if(await haAcesso(req,res)){
+   return res.render("index",{
+      utente : { nome: req.session.nome }
+   });
+}
+ //se non ci niente fa il login
+ 
+else{
+  const utente = await taskdao.getUtenteByEmail(req.email);
+  if(!utente){
+    return res.status(401).render("/login",{
+      errors:{
+        email: "Email o Password errati!."
+      }
+    })
+  }
+  const passwordValido = await bcrypt.compare(req.password,utente.password);
+  if(!passwordValido){
+    return res.status(401).render("/login",{
+      errors:{
+        email: "Email o Password errati!."
+      }
+    })
+  }
+  assegnaSession(req, utente.id, utente.nome, utente.ruolo);
+
+  //ricordami checked
+  if(req.ricordami )
+  {
+    const {tipo,token,age}= await ricordamiToken(req,res);
+    res.cookie(tipo,token,{
+          maxAge:1000*60*60*24*30,
+          secure: process.env.NODE_ENV === 'produzione',
+          httpOnly:true,
+          sameSite: 'lax'
+        });
+  }
+
+  return res.render("index",{
+      utente :{
+        nome: req.session.nome
+      }
+    })
+
+ }
+});
 
 //create account
 miniapp.post("/registrazione",validaDati,async (req,res)=>{
@@ -70,8 +196,10 @@ miniapp.post("/registrazione",validaDati,async (req,res)=>{
       //se utente esiste già
       const esiste = await taskdao.getUtenteByEmail(req.email);
       if(esiste){
-        return res.status(400).json({
-
+        return res.render("register",{
+          errors: {
+            email:"Email assegnato a un altra persona!"
+          }
         })
       }
 
@@ -79,31 +207,24 @@ miniapp.post("/registrazione",validaDati,async (req,res)=>{
       if(!utente)
         throw new Error("Errore: la registrazione non è stata effetuata");
 
-      //salva sessionDb
-      req.session.utente =utente.id;
-      req.session.ruolo = utente.ruolo;
+      //salva sessionDb 
+       assegnaSession(req,utente.id,utente.nome,utente.ruolo);
+     
       
-      if(req.ricordami){
-        const token = crypto.randomBytes(32).toString('hex');
-        const age = Date.now()+ 1000*60*60*24*30; //30giorni
-        const tipo = 'ricorda_mi';
-
-        const salvaToken = await taskdao.salvaToken(utente.id,token,age,tipo);
-        if(salvaToken){
+      if(req.ricordami )
+        {
+          const {tipo,token,age}= await ricordamiToken(req,res);
           res.cookie(tipo,token,{
-          maxAge:1000*60*60*24*30,
-          secure: process.env.NODE_ENV === 'produzione',
-          httpOnly:true,
-          sameSite: 'lax'
-        });
+                maxAge:1000*60*60*24*30,
+                secure: process.env.NODE_ENV === 'produzione',
+                httpOnly:true,
+                sameSite: 'lax'
+              });
         }
-      }
 
-      return res.json({
-        success:true,
-        data: {
-          id:utente.id,
-          ruolo :utente.ruolo
+      return res.render("index",{
+        utente:{
+          nome: utente.nome
         }
       });
 
@@ -113,6 +234,19 @@ miniapp.post("/registrazione",validaDati,async (req,res)=>{
         error: err.message
       });
     }
+});
+//home
+miniapp.all("/home", (req, res) => {
+  res.render("index",{
+      utente: req.session?.nome ? 
+      {
+        nome: req.session.nome,
+      }
+      : null
+    }
+)});
+miniapp.all("/",(req,res)=>{
+  res.redirect("/home")
 });
 //login
 miniapp.get("/login",(req,res)=>{
@@ -143,9 +277,7 @@ miniapp.get("/tasks", async (req, res) => {
   }
 });
 
-miniapp.all("/", (req, res) => {
-  res.redirect("/tasks");
-});
+
 
 //get un singolo task con id
 function validaTaskId(req, res, next) {

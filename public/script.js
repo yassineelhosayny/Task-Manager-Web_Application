@@ -387,8 +387,6 @@ asideSelected.forEach( l=> {
 });
 });
 
-
-fetchTasks();
 //cerca task
 const cercaForm = document.querySelector("#cercaForm");
 cercaForm.addEventListener("submit",async (e)=>{
@@ -417,4 +415,7 @@ cercaForm.addEventListener("submit",async (e)=>{
 });
 
 
+fetchTasks();
+
 //signin
+//SERVER SIDE

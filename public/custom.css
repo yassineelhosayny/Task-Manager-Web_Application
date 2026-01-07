@@ -235,3 +235,14 @@ nav[id="signInNav"]{
   color: #555;
   user-select: none; /* impedisce la selezione del testo */
 }
+
+.logout-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  margin-left: 10px;
+}
+.logout-btn:hover {
+  text-decoration: underline;
+}
