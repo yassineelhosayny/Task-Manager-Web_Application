@@ -405,12 +405,11 @@ cercaForm.addEventListener("submit", async (e) => {
       const tasks = await res.json();
 
       document.getElementById("TaskResult").innerHTML = ``;
+
       if (tasks.success && tasks.data.length >= 1) {
-        main.querySelector(
-          "h1"
-        ).innerText = `Risultato Ricerca: "${descrizione}"`;
+        main.querySelector("h1").innerText = `Risultato Ricerca: "${descrizione}"`;
         tasks.data.forEach((task) => {
-          renderTasks(task);
+          renderTasks(tasks,task);
         });
       } else {
         document.getElementById("TaskResult").innerHTML =

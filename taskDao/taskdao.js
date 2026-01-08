@@ -315,6 +315,7 @@ exports.cercaTask = function (attributiObj, idU) {
   console.log("=== DEBUG cercaTask ===");
   console.log("attributiObj ricevuto:", JSON.stringify(attributiObj));
   console.log("idU:", idU);
+
   if (!attributiObj || typeof attributiObj !== "object") {
     attributiObj = {};
   }
@@ -448,6 +449,7 @@ exports.cercaTask = function (attributiObj, idU) {
     const sql = `${baseSelect} WHERE ${where.join(" AND ")}`;
 
     db.all(sql, params, (err, rows) => {
+      console.log("resultato ricerca con descrizione: /n",rows)
       if (err) {
         console.log("DB: errore nella ricerca di task.");
         return reject(err);
